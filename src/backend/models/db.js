@@ -4,22 +4,21 @@ const backendSchema = new mongoose.Schema({
   nombre:   { type: String, required: true },
   creadoEn: { type: Date,   default: Date.now },
 }, {
-  collection: 'backend' 
+  collection: 'tareas' 
 });
 
 export const Backend = mongoose.model('Backend', backendSchema);
 
 export const connectDB = async () => {
   try {
-    await mongoose.connect('mongodb://lxrdszn:bcb96dbdb1@localhost:27017/backend', {
+    await mongoose.connect("mongodb+srv://lxrdszn:bcb96dbdb1@cluster77378.iksnsto.mongodb.net/proyectointegrador?retryWrites=true&w=majority", {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      authSource: 'admin'  
     });
-    console.log("✅ BD conectada y esquema Backend registrado");
+    console.log("✅ Conectado correctamente a MongoDB Atlas (proyectointegrador)");
   } catch (error) {
-    console.error("❌ Error conectando a Mongo:", error.message);
+    console.error("❌ Error conectando a MongoDB Atlas:", error.message);
   }
 };
 
-export default (connectDB)
+export default connectDB;

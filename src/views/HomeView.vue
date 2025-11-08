@@ -17,12 +17,11 @@
     <v-list>
       <v-list-item
         v-for="tarea in tareas"
-        :key="tarea.id"
+        :key="tarea._id"
         :class="['mb-2 rounded-lg', tarea.hecho ? 'bg-red-lighten-5' : '']"
-        @click="toggleHecho(tarea.id)"
+        @click="toggleHecho(tarea)"
       >
         <v-row align="center" class="w-100">
-          <!-- Checkbox solo visual, se actualiza al hacer click en toda la fila -->
           <v-col cols="auto">
             <v-checkbox
               v-model="tarea.hecho"
@@ -32,19 +31,17 @@
             />
           </v-col>
 
-          <!-- Titulo de la tarea -->
           <v-col>
             <span :class="{ 'text-decoration-line-through': tarea.hecho }">
               {{ tarea.titulo }}
             </span>
           </v-col>
 
-          <!-- Botones de acción sin fondo, con color -->
           <v-col cols="auto" class="d-flex gap-2">
-            <v-btn icon variant="text" color="blue" @click.stop="EditarTarea(tarea.id)">
+            <v-btn icon variant="text" color="blue" @click.stop="EditarTarea(tarea)">
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
-            <v-btn icon variant="text" color="red" @click.stop="BorrarTarea(tarea.id)">
+            <v-btn icon variant="text" color="red" @click.stop="BorrarTarea(tarea._id)">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </v-col>
@@ -55,52 +52,76 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   name: "HomeViewPage",
   data() {
     return {
-      tareas: [
-        { id: 1, titulo: "Levantarse", hecho: false },
-        { id: 2, titulo: "Desayunar", hecho: false },
-        { id: 3, titulo: "Ir a la escuela", hecho: false },
-      ],
+      tareas: [],
       nuevoTituloTarea: "",
       editandoId: null,
     };
   },
+  async mounted() {
+    await this.cargarTareas();
+  },
   methods: {
-    toggleHecho(id) {
-      const tarea = this.tareas.find((t) => t.id === id);
-      if (tarea) tarea.hecho = !tarea.hecho;
-    },
-    BorrarTarea(id) {
-      if (confirm("¿Deseas eliminar la tarea?")) {
-        this.tareas = this.tareas.filter((t) => t.id !== id);
+    async cargarTareas() {
+      try {
+        const res = await axios.get("http://localhost:5000/api/tareas");
+        this.tareas = res.data;
+      } catch (error) {
+        console.error("❌ Error al cargar tareas:", error);
       }
     },
-    agregarTarea() {
+
+    async agregarTarea() {
       if (!this.nuevoTituloTarea.trim()) return;
 
-      if (this.editandoId !== null) {
-        const tarea = this.tareas.find((t) => t.id === this.editandoId);
-        if (tarea) tarea.titulo = this.nuevoTituloTarea.trim();
-        this.editandoId = null;
+      try {
+        if (this.editandoId) {
+          // Actualizar tarea
+          await axios.put(`http://localhost:5000/api/tareas/${this.editandoId}`, {
+            titulo: this.nuevoTituloTarea.trim(),
+          });
+          this.editandoId = null;
+        } else {
+          // Crear nueva tarea
+          await axios.post("http://localhost:5000/api/tareas", {
+            titulo: this.nuevoTituloTarea.trim(),
+          });
+        }
         this.nuevoTituloTarea = "";
-        return;
+        await this.cargarTareas();
+      } catch (error) {
+        console.error("❌ Error al guardar tarea:", error);
       }
-
-      this.tareas.push({
-        id: Date.now(),
-        titulo: this.nuevoTituloTarea.trim(),
-        hecho: false,
-      });
-      this.nuevoTituloTarea = "";
     },
-    EditarTarea(id) {
-      const tarea = this.tareas.find((t) => t.id === id);
-      if (tarea) {
-        this.nuevoTituloTarea = tarea.titulo;
-        this.editandoId = id;
+
+    async toggleHecho(tarea) {
+      try {
+        await axios.put(`http://localhost:5000/api/tareas/${tarea._id}`, {
+          hecho: !tarea.hecho,
+        });
+        await this.cargarTareas();
+      } catch (error) {
+        console.error("❌ Error al actualizar estado:", error);
+      }
+    },
+
+    EditarTarea(tarea) {
+      this.nuevoTituloTarea = tarea.titulo;
+      this.editandoId = tarea._id;
+    },
+
+    async BorrarTarea(id) {
+      if (!confirm("¿Deseas eliminar la tarea?")) return;
+      try {
+        await axios.delete(`http://localhost:5000/api/tareas/${id}`);
+        await this.cargarTareas();
+      } catch (error) {
+        console.error("❌ Error al eliminar tarea:", error);
       }
     },
   },

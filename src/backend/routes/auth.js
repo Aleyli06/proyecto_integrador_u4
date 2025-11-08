@@ -1,128 +1,88 @@
+// 📁 routes/tareas.js
 import { Router } from "express";
-import { login, register } from "../controllers/user.controllers.js";
-
-import { checkUserCredentials } from "../models/login/login.js";
-import { signup } from "../models/signup/signup.js";
-import jwt from 'jsonwebtoken';
-import validateSchema from "../middleware/validateSchema.js";
-import { verificarToken } from '../middleware/authMiddleware.js';
-import { loginSchema, signupSchema } from "../middleware/authSchemas.js";
-//Parametros de las funciones del CRUD (CREAR, LEER, BORRAR, MODIFICAR)
-import { createSubject, getSubjects, deleteSubject,updateSubject} from "../models/materias/materias.js";
-import { verificarmaterias } from "../middleware/materias.js";
+import Tarea from "../models/usuarios/materias.js"; 
 
 const router = Router();
-router.post("/register", register);
-router.post("/login", login);
-
-
 
 /*
 ##################################################################################################
-#                          Endpoint para inicio de  sesion                                       #
+#                          📌 Obtener todas las tareas                                            #
 ##################################################################################################
 */
-
-// Función de login
-router.post('/auth/login', validateSchema(loginSchema), async (req, res) => {
-  const { usuario: username, contrasena: password } = req.body;
-
-  const user = await checkUserCredentials(username, password);
-
-  if (!user) {
-    return res.status(401).json({ message: 'Credenciales incorrectas' });
-  }
-
-  const token = jwt.sign({ id: user._id, username: user.username }, 'secretKey', { expiresIn: '1h' });
-
-  // Enviar el token como una cookie
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: false,       // ⚠️ solo en desarrollo
-    sameSite: 'Lax',     // ✅ compatible con HTTP
-    maxAge: 3600000,
-  });
-  
-
-  return res.json({ message: 'Login exitoso' });
-});
-
-/*
-##################################################################################################
-#                          Endpoint para registrarse                                             #
-##################################################################################################
-*/
-
-//Ruta  de endpoint para registrar un usuario
-
-router.post('/auth/signup', validateSchema(signupSchema), async (req, res) => {
-  const { usuario, email, contrasena } = req.body;
-
+router.get("/tareas", async (req, res) => {
   try {
-    const nuevousuario = await signup(usuario, email, contrasena);
-    return res.status(201).json({ message: 'Usuario registrado exitosamente', data: nuevousuario });
+    const tareas = await Tarea.find();
+    res.json(tareas);
   } catch (error) {
-    console.error('Error al registrar el usuario:', error);
-    return res.status(500).json({ message: 'Error del servidor', error: error.message });
+    console.error("Error al obtener tareas:", error);
+    res.status(500).json({ message: "Error del servidor" });
   }
 });
 
-
 /*
 ##################################################################################################
-#                          Endpoint para borrar cookie                                            #
+#                          📌 Crear una nueva tarea                                               #
 ##################################################################################################
 */
+router.post("/tareas", async (req, res) => {
+  try {
+    const { titulo } = req.body;
 
-//Ruta  de endpoint para borrar cookie
-router.post('/auth/logout', (req, res) => {
-  res.clearCookie('token', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'Lax' 
-  });
-  res.json({ message: 'Sesión cerrada' });
-});
+    if (!titulo || titulo.trim() === "")
+      return res.status(400).json({ message: "El título es obligatorio" });
 
+    const nuevaTarea = new Tarea({ titulo });
+    await nuevaTarea.save();
 
-/*
-##################################################################################################
-#                          Endpoint para verificar la  cookie                                     #
-##################################################################################################
-*/
-router.get('/auth/perfil', verificarToken, (req, res) => {
-  res.json({ message: 'Acceso autorizado', usuario: req.usuario });
+    res.status(201).json({ message: "✅ Tarea creada", tarea: nuevaTarea });
+  } catch (error) {
+    console.error("Error al crear tarea:", error);
+    res.status(500).json({ message: "Error del servidor" });
+  }
 });
 
 /*
 ##################################################################################################
-#                          Endpoint para registrarse  materias                                     #
+#                          📌 Actualizar una tarea                                                #
 ##################################################################################################
 */
+router.put("/tareas/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { titulo, hecho } = req.body;
 
-router.post("/auth/materias", verificarmaterias, createSubject);
+    const tarea = await Tarea.findByIdAndUpdate(
+      id,
+      { titulo, hecho },
+      { new: true }
+    );
+
+    if (!tarea) return res.status(404).json({ message: "Tarea no encontrada" });
+
+    res.json({ message: "✅ Tarea actualizada", tarea });
+  } catch (error) {
+    console.error("Error al actualizar tarea:", error);
+    res.status(500).json({ message: "Error del servidor" });
+  }
+});
+
 /*
 ##################################################################################################
-#                          Endpoint para consultar  materias                                     #
+#                          📌 Eliminar una tarea                                                  #
 ##################################################################################################
 */
-router.get('/auth/materias', verificarmaterias, getSubjects);
+router.delete("/tareas/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tarea = await Tarea.findByIdAndDelete(id);
 
+    if (!tarea) return res.status(404).json({ message: "Tarea no encontrada" });
 
-/*
-##################################################################################################
-#                          Endpoint para borrar  materias                                         #
-##################################################################################################
-*/
-router.delete('/auth/bajamateria/:key', verificarToken, deleteSubject);
-
-/*
-##################################################################################################
-#                          Endpoint para actualizar  materias                                      #
-##################################################################################################
-*/
-router.put('/auth/actualizarmateria/:key', verificarToken, updateSubject);
+    res.json({ message: "🗑️ Tarea eliminada correctamente" });
+  } catch (error) {
+    console.error("Error al eliminar tarea:", error);
+    res.status(500).json({ message: "Error del servidor" });
+  }
+});
 
 export default router;
-
-

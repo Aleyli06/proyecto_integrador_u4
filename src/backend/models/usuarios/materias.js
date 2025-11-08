@@ -1,20 +1,21 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
-const subjectSchema = new Schema({
-    subjectname: {
-        type: String,
-        required: true,
-    },
-    key: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    user: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-    },
+const tareaSchema = new mongoose.Schema({
+  titulo: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  hecho: {
+    type: Boolean,
+    default: false,
+  },
+  creadoEn: {
+    type: Date,
+    default: Date.now,
+  },
+}, {
+  collection: "tareas" 
 });
 
-export default mongoose.model("Subject", subjectSchema);
+export default mongoose.model("Tarea", tareaSchema);
