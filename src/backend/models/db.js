@@ -11,7 +11,7 @@ export const Backend = mongoose.model('Backend', backendSchema);
 
 export const connectDB = async () => {
   try {
-    await mongoose.connect("mongodb+srv://lxrdszn:bcb96dbdb1@cluster77378.iksnsto.mongodb.net/proyectointegrador?retryWrites=true&w=majority", {
+    await mongoose.connect("mongodb+srv://aleyli:175200@proyecto-integrador.lrgo5mb.mongodb.net/proyectointegrador?retryWrites=true&w=majority", {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
