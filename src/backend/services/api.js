@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Detecta automáticamente si estás en desarrollo o producción
 const baseURL = import.meta.env.PROD
-  ? 'https://proyecto-integrador-hib.onrender.com/api' 
+  ? 'https://proyecto-integrador-u4.onrender.com/api' 
   : 'http://localhost:5000/api'; 
 
 // Crear instancia de Axios con la configuración base
