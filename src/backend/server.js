@@ -15,7 +15,7 @@ app.use(
   cors({
     origin: [
       'http://localhost:5173', // Desarrollo local
-      'https://elegant-kringle-6c2dbc.netlify.app' // Tu frontend desplegado
+      'https://proyecto-integradoru4.netlify.app' // Tu frontend desplegado
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
