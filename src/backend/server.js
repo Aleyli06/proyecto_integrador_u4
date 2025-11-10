@@ -2,7 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import connectDB from './models/db.js';
-import authRoutes from './routes/auth.js'; // Tus rutas (pueden llamarse como quieras)
+import authRoutes from './routes/auth.js'; 
 /* eslint-env node */
 const app = express();
 const port = process.env.PORT || 5000;
@@ -15,7 +15,7 @@ app.use(
   cors({
     origin: [
       'http://localhost:5173', // Desarrollo local
-      'https://proyecto-integradoru4.netlify.app' // Tu frontend desplegado
+      'https://proyecto-integradoru4.netlify.app' //  frontend desplegado
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
